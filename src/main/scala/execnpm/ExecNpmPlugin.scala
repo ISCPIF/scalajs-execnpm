@@ -76,16 +76,11 @@ object ExecNpmPlugin extends AutoPlugin {
   private lazy val perConfigSettings: Seq[Def.Setting[_]] = Seq(
     allNpmDeps := NpmDeps.collectFromClasspath((fullClasspath in Compile).value),
 
-    scalaJSBundlerPackageJson := PackageJsonTasks.writePackageJson(
+    scalaJSBundlerPackageJson := PackageJsonTasks.writeOnlyDepsPackageJson(
       (crossTarget in npmUpdate).value,
       (allNpmDeps in Compile).value.map { dep => dep.module -> dep.version },
-      Seq(),
-      Map.empty,
-      Map.empty,
       fullClasspath.value,
       configuration.value,
-      "3",
-      "2.7.1",
       streams.value
     )
 
