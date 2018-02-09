@@ -45,7 +45,13 @@ object ExecNpmPlugin extends AutoPlugin {
           js <- m.jsFiles
         } yield {
           logger.info(s"Fetch $js in ${nodeModules / m.module}")
-          get(nodeModules / m.module, js)
+          val jsfile = get(nodeModules / m.module, js)
+
+          jsfile match {
+            case None=> logger.error(s"$js not found")
+            case _=>
+          }
+          jsfile
         }).flatten
 
       }
