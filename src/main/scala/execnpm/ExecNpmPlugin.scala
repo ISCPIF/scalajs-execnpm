@@ -3,17 +3,16 @@ package execnpm
 import execnpm.NpmDeps.NpmDeps
 import org.scalajs.core.tools.io.FileVirtualJSFile
 import org.scalajs.core.tools.jsdep.ResolvedJSDependency
+import org.scalajs.sbtplugin.ScalaJSPlugin
 import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport._
 import sbt.Keys._
 import sbt._
 
-import scalajsbundler.sbtplugin.NpmDepsPlugin._
-import scalajsbundler.sbtplugin.NpmDepsPlugin.autoImport._
-import scalajsbundler.sbtplugin.{NpmDepsPlugin, PackageJsonTasks}
+import scalajsbundler.sbtplugin._
 
 object ExecNpmPlugin extends AutoPlugin {
 
-  override lazy val requires = NpmDepsPlugin
+  override lazy val requires = ScalaJSPlugin
 
   // Exported keys
   object autoImport {
@@ -23,12 +22,18 @@ object ExecNpmPlugin extends AutoPlugin {
     val allNpmDeps = taskKey[NpmDeps]("json file containing all npm js dependencies collected from all dependencies")
 
     val dependencyFile = taskKey[File]("File containing all external js files")
+
+    val npmUpdate = taskKey[File]("Fetch NPM dependencies")
+
+    val jsonFile = taskKey[File]("package.json file path")
   }
 
   import autoImport._
 
   override lazy val projectSettings = Seq(
     npmDeps in Compile := List.empty,
+
+    allNpmDeps in Compile := List.empty,
 
     skip in packageJSDependencies := false,
 
@@ -68,21 +73,27 @@ object ExecNpmPlugin extends AutoPlugin {
     (products in Compile) := (products in Compile).dependsOn(npmDepsManifest).value
   ) ++ perScalaJSStageSettings(fullOptJS) ++ perScalaJSStageSettings(fastOptJS)
 
-  protected def perScalaJSStageSettings(stage: TaskKey[Attributed[File]]): Seq[Def.Setting[_]] = Seq(
-    useYarn := false
-  ) ++ inConfig(Compile)(perConfigSettings)
+  protected def perScalaJSStageSettings(stage: TaskKey[Attributed[File]]): Seq[Def.Setting[_]] =
+    inConfig(Compile)(perConfigSettings)
 
 
   private lazy val perConfigSettings: Seq[Def.Setting[_]] = Seq(
     allNpmDeps := NpmDeps.collectFromClasspath((fullClasspath in Compile).value),
 
-    scalaJSBundlerPackageJson := PackageJsonTasks.writeOnlyDepsPackageJson(
-      (crossTarget in npmUpdate).value,
+    jsonFile := PackageJsonTasks.writeOnlyDepsPackageJson(
+      (crossTarget in Compile).value,
       (allNpmDeps in Compile).value.map { dep => dep.module -> dep.version },
       fullClasspath.value,
       configuration.value,
       streams.value
-    )
+    ).file,
+
+    npmUpdate := NpmUpdateTasks.npmUpdate(
+      (crossTarget in Compile).value,
+      jsonFile.value,
+      false,
+      scalaJSNativeLibraries.value.data,
+      streams.value)
 
   )
 
