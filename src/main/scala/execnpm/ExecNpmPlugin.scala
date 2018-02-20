@@ -1,6 +1,6 @@
 package execnpm
 
-import execnpm.NpmDeps.NpmDeps
+import execnpm.NpmDeps._
 import org.scalajs.core.tools.io.FileVirtualJSFile
 import org.scalajs.core.tools.jsdep.ResolvedJSDependency
 import org.scalajs.sbtplugin.ScalaJSPlugin
@@ -41,6 +41,7 @@ object ExecNpmPlugin extends AutoPlugin {
       val logger = streams.value.log
       val prev = (resolvedJSDependencies in Compile).value
 
+      println("ALL " + (allNpmDeps in Compile).value)
       // Fetch the js paths in node_modules
       val jss = {
         val nodeModules = (npmUpdate in Compile).value / "node_modules"
@@ -61,10 +62,13 @@ object ExecNpmPlugin extends AutoPlugin {
 
       }
 
+      println("JSS " + jss.map{_.getAbsolutePath})
       val resolvedDependencies = jss.map { f =>
         ResolvedJSDependency.minimal(FileVirtualJSFile(f))
       }
 
+      println("REsolved " + resolvedDependencies.size)
+      println("PRED " + prev.data.size)
       prev.map(_ ++ resolvedDependencies)
     },
 
@@ -78,7 +82,7 @@ object ExecNpmPlugin extends AutoPlugin {
 
 
   private lazy val perConfigSettings: Seq[Def.Setting[_]] = Seq(
-    allNpmDeps := NpmDeps.collectFromClasspath((fullClasspath in Compile).value),
+    allNpmDeps := NpmDeps.collectFromClasspath((fullClasspath in Compile).value).sorted,
 
     jsonFile := PackageJsonTasks.writeOnlyDepsPackageJson(
       (crossTarget in Compile).value,

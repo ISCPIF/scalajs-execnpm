@@ -2,7 +2,7 @@ val execnpm =
   project.in(file("."))
     .settings(
       sbtPlugin := true,
-      version := "0.1",
+      version := "0.1-SNAPSHOT",
       name := "scalajs-execnpm",
       organization := "fr.iscpif",
       description := "Npm finder and js aggregator for Scala.js projects",

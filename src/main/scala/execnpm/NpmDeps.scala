@@ -10,7 +10,12 @@ import sbt._
 
 object NpmDeps {
 
-  case class Dep(module: String, version: String, jsFiles: List[String])
+  case class Dep(module: String, version: String, jsFiles: List[String], appendMode: Boolean = false)
+
+  implicit lazy val valOrderingOnName = new Ordering[Dep] {
+    override def compare(left: Dep, right: Dep) =
+      left.appendMode compare right.appendMode
+  }
 
   type NpmDeps = List[Dep]
 
@@ -26,6 +31,7 @@ object NpmDeps {
           .fld("module", npmManifest.module)
           .fld("version", npmManifest.version)
           .fld("jsFiles", npmManifest.jsFiles)
+          .fld("appendMode", npmManifest.appendMode)
           .toJSON
     }
 
@@ -36,7 +42,8 @@ object NpmDeps {
         Dep(
           obj.fld[String]("module"),
           obj.fld[String]("version"),
-          obj.fld[List[String]]("jsFiles")
+          obj.fld[List[String]]("jsFiles"),
+          obj.fld[Boolean]("appendMode")
         )
       }
     }
