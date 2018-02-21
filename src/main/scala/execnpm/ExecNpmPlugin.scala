@@ -41,7 +41,6 @@ object ExecNpmPlugin extends AutoPlugin {
       val logger = streams.value.log
       val prev = (resolvedJSDependencies in Compile).value
 
-      println("ALL " + (allNpmDeps in Compile).value)
       // Fetch the js paths in node_modules
       val jss = {
         val nodeModules = (npmUpdate in Compile).value / "node_modules"
@@ -62,13 +61,10 @@ object ExecNpmPlugin extends AutoPlugin {
 
       }
 
-      println("JSS " + jss.map{_.getAbsolutePath})
       val resolvedDependencies = jss.map { f =>
         ResolvedJSDependency.minimal(FileVirtualJSFile(f))
       }
 
-      println("REsolved " + resolvedDependencies.size)
-      println("PRED " + prev.data.size)
       prev.map(_ ++ resolvedDependencies)
     },
 
