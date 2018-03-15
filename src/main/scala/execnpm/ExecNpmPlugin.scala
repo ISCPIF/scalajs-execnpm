@@ -8,8 +8,6 @@ import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport._
 import sbt.Keys._
 import sbt._
 
-import scalajsbundler.sbtplugin._
-
 object ExecNpmPlugin extends AutoPlugin {
 
   override lazy val requires = ScalaJSPlugin
@@ -80,7 +78,7 @@ object ExecNpmPlugin extends AutoPlugin {
   private lazy val perConfigSettings: Seq[Def.Setting[_]] = Seq(
     allNpmDeps := NpmDeps.collectFromClasspath((fullClasspath in Compile).value).sorted,
 
-    jsonFile := PackageJsonTasks.writeOnlyDepsPackageJson(
+    jsonFile := Tasks.writeOnlyDepsPackageJson(
       (crossTarget in Compile).value,
       (allNpmDeps in Compile).value.map { dep => dep.module -> dep.version },
       fullClasspath.value,
@@ -88,7 +86,7 @@ object ExecNpmPlugin extends AutoPlugin {
       streams.value
     ).file,
 
-    npmUpdate := NpmUpdateTasks.npmUpdate(
+    npmUpdate := scalajsbundler.sbtplugin.NpmUpdateTasks.npmUpdate(
       (crossTarget in Compile).value,
       jsonFile.value,
       false,
