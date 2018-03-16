@@ -1,13 +1,12 @@
 package execnpm
 
-import java.io.{BufferedInputStream, FileInputStream}
+import java.io.{ BufferedInputStream, FileInputStream }
 import java.util.zip.ZipInputStream
 
 import org.scalajs.core.tools.json._
 import sbt._
 
 import scalajsbundler.NpmDependencies
-
 
 object NpmDeps {
 
@@ -44,43 +43,40 @@ object NpmDeps {
           obj.fld[String]("module"),
           obj.fld[String]("version"),
           obj.fld[List[String]]("jsFiles"),
-          obj.fld[Boolean]("appendMode")
-        )
+          obj.fld[Boolean]("appendMode"))
       }
     }
 
   /**
-    * @param cp Classpath
-    * @return All the NPM dependencies found in the given classpath
-    */
+   * @param cp Classpath
+   * @return All the NPM dependencies found in the given classpath
+   */
   def collectFromClasspath(cp: Def.Classpath): NpmDeps = {
     (
       for {
         cpEntry <- Attributed.data(cp) if cpEntry.exists
-        results <-
-          if (cpEntry.isFile && cpEntry.name.endsWith(".jar")) Seq({
-            val stream = new ZipInputStream(new BufferedInputStream(new FileInputStream(cpEntry)))
-            try {
-              Iterator.continually(stream.getNextEntry())
-                .takeWhile(_ != null)
-                .filter(_.getName == NpmDeps.manifestFileName)
-                .flatMap(_ => {
-                  fromJSON[NpmDeps](readJSON(IO.readStream(stream)))
-                }).to[List]
-            } finally {
-              stream.close()
-            }
-          }) else if (cpEntry.isDirectory) {
-            (for {
-              (file, _) <- Path.selectSubpaths(cpEntry, new ExactFilter(NpmDeps.manifestFileName))
-            } yield {
-              fromJSON[NpmDeps](readJSON(IO.read(file)))
-            }).toList
-          } else sys.error(s"Illegal classpath entry: ${cpEntry.absolutePath}")
-      } yield results
-      ).toList.flatten
+        results <- if (cpEntry.isFile && cpEntry.name.endsWith(".jar")) Seq({
+          val stream = new ZipInputStream(new BufferedInputStream(new FileInputStream(cpEntry)))
+          try {
+            Iterator.continually(stream.getNextEntry())
+              .takeWhile(_ != null)
+              .filter(_.getName == NpmDeps.manifestFileName)
+              .flatMap(_ => {
+                fromJSON[NpmDeps](readJSON(IO.readStream(stream)))
+              }).to[List]
+          } finally {
+            stream.close()
+          }
+        })
+        else if (cpEntry.isDirectory) {
+          (for {
+            (file, _) <- Path.selectSubpaths(cpEntry, new ExactFilter(NpmDeps.manifestFileName))
+          } yield {
+            fromJSON[NpmDeps](readJSON(IO.read(file)))
+          }).toList
+        } else sys.error(s"Illegal classpath entry: ${cpEntry.absolutePath}")
+      } yield results).toList.flatten
   }
-
 
   def writeNpmDepsJson(npmDeps: NpmDeps, targetFile: File): File = {
     IO.write(targetFile, jsonToString(npmDeps.toJSON))

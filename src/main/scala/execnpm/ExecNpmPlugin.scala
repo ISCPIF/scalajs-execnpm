@@ -51,8 +51,8 @@ object ExecNpmPlugin extends AutoPlugin {
           val jsfile = get(nodeModules / m.module, js)
 
           jsfile match {
-            case None=> logger.error(s"$js not found")
-            case _=>
+            case None => logger.error(s"$js not found")
+            case _ =>
           }
           jsfile
         }).flatten
@@ -68,12 +68,10 @@ object ExecNpmPlugin extends AutoPlugin {
 
     dependencyFile := (packageMinifiedJSDependencies in Compile).value,
 
-    (products in Compile) := (products in Compile).dependsOn(npmDepsManifest).value
-  ) ++ perScalaJSStageSettings(fullOptJS) ++ perScalaJSStageSettings(fastOptJS)
+    (products in Compile) := (products in Compile).dependsOn(npmDepsManifest).value) ++ perScalaJSStageSettings(fullOptJS) ++ perScalaJSStageSettings(fastOptJS)
 
   protected def perScalaJSStageSettings(stage: TaskKey[Attributed[File]]): Seq[Def.Setting[_]] =
     inConfig(Compile)(perConfigSettings)
-
 
   private lazy val perConfigSettings: Seq[Def.Setting[_]] = Seq(
     allNpmDeps := NpmDeps.collectFromClasspath((fullClasspath in Compile).value).sorted,
@@ -83,17 +81,14 @@ object ExecNpmPlugin extends AutoPlugin {
       (allNpmDeps in Compile).value.map { dep => dep.module -> dep.version },
       fullClasspath.value,
       configuration.value,
-      streams.value
-    ).file,
+      streams.value).file,
 
     npmUpdate := scalajsbundler.sbtplugin.NpmUpdateTasks.npmUpdate(
       (crossTarget in Compile).value,
       jsonFile.value,
       false,
       scalaJSNativeLibraries.value.data,
-      streams.value)
-
-  )
+      streams.value))
 
   private def recursiveListFiles(f: File): Array[File] = {
     val these = f.listFiles
@@ -106,14 +101,13 @@ object ExecNpmPlugin extends AutoPlugin {
   }
 
   /**
-    * Writes the NpmDeps manifest file.
-    */
+   * Writes the NpmDeps manifest file.
+   */
   val npmDepsManifest: Def.Initialize[Task[File]] =
     Def.task {
       NpmDeps.writeNpmDepsJson(
         (npmDeps in Compile).value,
-        (classDirectory in Compile).value / NpmDeps.manifestFileName
-      )
+        (classDirectory in Compile).value / NpmDeps.manifestFileName)
     }
 
 }
