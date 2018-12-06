@@ -47,7 +47,7 @@ object ExecNpmPlugin extends AutoPlugin {
           m <- (allNpmDeps in Compile).value
           js <- m.jsFiles
         } yield {
-          logger.info(s"Fetch $js in ${nodeModules / m.module}")
+          logger.info(s"Fetch $js ${m.version} in ${nodeModules / m.module}")
           val jsfile = get(nodeModules / m.module, js)
 
           jsfile match {
