@@ -74,7 +74,7 @@ object ExecNpmPlugin extends AutoPlugin {
     inConfig(Compile)(perConfigSettings)
 
   private lazy val perConfigSettings: Seq[Def.Setting[_]] = Seq(
-    allNpmDeps := NpmDeps.collectFromClasspath((fullClasspath in Compile).value).sorted,
+    allNpmDeps := NpmDeps.collectFromClasspath((fullClasspath in Compile).value).sorted.distinct,
 
     jsonFile := Tasks.writeOnlyDepsPackageJson(
       (crossTarget in Compile).value,
