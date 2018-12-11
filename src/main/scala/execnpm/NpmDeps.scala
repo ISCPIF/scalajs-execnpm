@@ -10,7 +10,7 @@ import scalajsbundler.NpmDependencies
 
 object NpmDeps {
 
-  case class Dep(module: String, version: String, jsFiles: List[String], appendMode: Boolean = false)
+  case class Dep(module: String, version: String, resources: List[String], appendMode: Boolean = false)
 
   implicit lazy val valOrderingOnName = new Ordering[Dep] {
     override def compare(left: Dep, right: Dep) =
@@ -30,7 +30,7 @@ object NpmDeps {
         new JSONObjBuilder()
           .fld("module", npmManifest.module)
           .fld("version", npmManifest.version)
-          .fld("jsFiles", npmManifest.jsFiles)
+          .fld("resources", npmManifest.resources)
           .fld("appendMode", npmManifest.appendMode)
           .toJSON
     }
@@ -42,7 +42,7 @@ object NpmDeps {
         Dep(
           obj.fld[String]("module"),
           obj.fld[String]("version"),
-          obj.fld[List[String]]("jsFiles"),
+          obj.fld[List[String]]("resources"),
           obj.fld[Boolean]("appendMode"))
       }
     }

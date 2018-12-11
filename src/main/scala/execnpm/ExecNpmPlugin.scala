@@ -1,5 +1,7 @@
 package execnpm
 
+import java.nio.file.{ Files, Paths }
+
 import execnpm.NpmDeps._
 import org.scalajs.core.tools.io.FileVirtualJSFile
 import org.scalajs.core.tools.jsdep.ResolvedJSDependency
@@ -21,6 +23,8 @@ object ExecNpmPlugin extends AutoPlugin {
 
     val dependencyFile = taskKey[File]("File containing all external js files")
 
+    val cssFile = taskKey[File]("File containing all external js files")
+
     val npmUpdate = taskKey[File]("Fetch NPM dependencies")
 
     val jsonFile = taskKey[File]("package.json file path")
@@ -35,17 +39,19 @@ object ExecNpmPlugin extends AutoPlugin {
 
     skip in packageJSDependencies := false,
 
+    cssFile := (target in Compile).value / "css",
+
     resolvedJSDependencies in Compile := {
       val logger = streams.value.log
       val prev = (resolvedJSDependencies in Compile).value
 
       // Fetch the js paths in node_modules
-      val jss = {
+      val resources = {
         val nodeModules = (npmUpdate in Compile).value / "node_modules"
 
         (for {
           m <- (allNpmDeps in Compile).value
-          js <- m.jsFiles
+          js <- m.resources
         } yield {
           logger.info(s"Fetch $js ${m.version} in ${nodeModules / m.module}")
           val jsfile = get(nodeModules / m.module, js)
@@ -57,6 +63,20 @@ object ExecNpmPlugin extends AutoPlugin {
           jsfile
         }).flatten
 
+      }
+
+      val jss = resources.filter {
+        _.ext == "js"
+      }
+      val csss = resources.filter {
+        _.ext == "css"
+      }
+
+      val cssTarget = (cssFile in Compile).value
+      for (
+        f <- csss
+      ) yield {
+        IO.append(cssTarget / "deps.css", Files.readAllBytes(Paths.get(f.toURI)))
       }
 
       val resolvedDependencies = jss.map { f =>
