@@ -12,11 +12,6 @@ object NpmDeps {
 
   case class Dep(module: String, version: String, resources: List[String], appendMode: Boolean = false)
 
-  implicit lazy val valOrderingOnName = new Ordering[Dep] {
-    override def compare(left: Dep, right: Dep) =
-      left.appendMode compare right.appendMode
-  }
-
   type NpmDeps = List[Dep]
 
   /** Name of the file containing the NPM deps */

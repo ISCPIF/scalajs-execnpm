@@ -49,8 +49,10 @@ object ExecNpmPlugin extends AutoPlugin {
       val resources = {
         val nodeModules = (npmUpdate in Compile).value / "node_modules"
 
+        val sortedNpmDeps = (allNpmDeps in Compile).value.distinct.sortBy(_.appendMode)
+
         (for {
-          m <- (allNpmDeps in Compile).value
+          m <- sortedNpmDeps
           js <- m.resources
         } yield {
           logger.info(s"Fetch $js ${m.version} in ${nodeModules / m.module}")
@@ -94,7 +96,7 @@ object ExecNpmPlugin extends AutoPlugin {
     inConfig(Compile)(perConfigSettings)
 
   private lazy val perConfigSettings: Seq[Def.Setting[_]] = Seq(
-    allNpmDeps := NpmDeps.collectFromClasspath((fullClasspath in Compile).value).sorted.distinct,
+    allNpmDeps := NpmDeps.collectFromClasspath((fullClasspath in Compile).value).distinct,
 
     jsonFile := Tasks.writeOnlyDepsPackageJson(
       (crossTarget in Compile).value,
