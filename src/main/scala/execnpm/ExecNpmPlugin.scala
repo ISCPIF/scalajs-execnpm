@@ -74,11 +74,13 @@ object ExecNpmPlugin extends AutoPlugin {
         _.ext == "css"
       }
 
-      val cssTarget = (cssFile in Compile).value
+      val cssTarget = (cssFile in Compile).value / "deps.css"
+      cssTarget.delete
+
       for (
         f <- csss
       ) yield {
-        IO.append(cssTarget / "deps.css", Files.readAllBytes(Paths.get(f.toURI)))
+        IO.append(cssTarget, Files.readAllBytes(Paths.get(f.toURI)))
       }
 
       val resolvedDependencies = jss.map { f =>
