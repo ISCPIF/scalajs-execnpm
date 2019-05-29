@@ -102,7 +102,7 @@ object ExecNpmPlugin extends AutoPlugin {
 
     jsonFile := Tasks.writeOnlyDepsPackageJson(
       (crossTarget in Compile).value,
-      (allNpmDeps in Compile).value.map { dep => dep.module -> dep.version },
+      (allNpmDeps in Compile).value.map { dep => dep.module.split("/").head -> dep.version },
       fullClasspath.value,
       configuration.value,
       streams.value).file,
