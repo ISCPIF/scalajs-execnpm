@@ -7,8 +7,10 @@ import org.scalajs.core.tools.io.FileVirtualJSFile
 import org.scalajs.core.tools.jsdep.ResolvedJSDependency
 import org.scalajs.sbtplugin.ScalaJSPlugin
 import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport._
+import scala.collection.JavaConverters._
 import sbt.Keys._
 import sbt._
+import com.google.javascript.jscomp.{ Compiler, CompilerOptions, JSModule, SourceFile }
 
 object ExecNpmPlugin extends AutoPlugin {
 
@@ -89,6 +91,20 @@ object ExecNpmPlugin extends AutoPlugin {
 
       prev.map(_ ++ resolvedDependencies)
     },
+
+    //GoogleClosureCompiler
+    //      val minified = (packageMinifiedJSDependencies in Compile).value
+    //      val compiler = new Compiler()
+    //
+    //      val modules = List(new JSModule(minified.getName)).asJava
+    //
+    //      compiler.compileModules(List().asJava, modules, new CompilerOptions)
+    //
+    //      val f = minified.getAbsoluteFile
+    //      // minified.delete()
+    //      IO.write(f, compiler.toSource)
+    //      println("FILLE  " + f.getAbsolutePath + " // " + compiler.toSource.size)
+    //      f
 
     dependencyFile := (packageMinifiedJSDependencies in Compile).value,
 
