@@ -1,11 +1,13 @@
 val execnpm =
-  project.in(file("."))
+    project.in(file("."))
     .settings(
+      scalaVersion := "2.12.11",
       sbtPlugin := true,
       name := "scalajs-execnpm",
       organization := "fr.iscpif",
       description := "Npm finder and js aggregator for Scala.js projects",
-      addSbtPlugin("ch.epfl.scala" % "sbt-scalajs-bundler" % "0.11.0")
+      addSbtPlugin("ch.epfl.scala" % "sbt-scalajs-bundler" % "0.17.0"),
+      addSbtPlugin("org.scala-js" % "sbt-jsdependencies" % "1.0.0")
     )
 
 publishMavenStyle := true
@@ -44,8 +46,6 @@ releaseVersionBump := sbtrelease.Version.Bump.Minor
 releaseTagComment := s"Releasing ${(version in ThisBuild).value}"
 
 releaseCommitMessage := s"Bump version to ${(version in ThisBuild).value}"
-
-//libraryDependencies += "com.google.javascript" % "closure-compiler" % "v20190513"
 
 import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations._
 

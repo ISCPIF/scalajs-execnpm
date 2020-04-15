@@ -2,11 +2,8 @@ package execnpm
 
 import java.io.{ BufferedInputStream, FileInputStream }
 import java.util.zip.ZipInputStream
-
-import org.scalajs.core.tools.json._
+import execnpm.json._
 import sbt._
-
-import scalajsbundler.NpmDependencies
 
 object NpmDeps {
 

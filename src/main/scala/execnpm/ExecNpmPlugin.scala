@@ -3,21 +3,23 @@ package execnpm
 import java.nio.file.{ Files, Paths }
 
 import execnpm.NpmDeps._
-import org.scalajs.core.tools.io.FileVirtualJSFile
-import org.scalajs.core.tools.jsdep.ResolvedJSDependency
-import org.scalajs.sbtplugin.ScalaJSPlugin
 import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport._
+import org.scalajs.jsdependencies.sbtplugin.JSDependenciesPlugin
+import org.scalajs.jsdependencies.core.ResolvedJSDependency
+import org.scalajs.sbtplugin.ScalaJSPlugin
+
 import scala.collection.JavaConverters._
 import sbt.Keys._
 import sbt._
-import com.google.javascript.jscomp.{ Compiler, CompilerOptions, JSModule, SourceFile }
 
 object ExecNpmPlugin extends AutoPlugin {
 
-  override lazy val requires = ScalaJSPlugin
+  override lazy val requires = JSDependenciesPlugin
 
   // Exported keys
   object autoImport {
+
+    import KeyRanks._
 
     val npmDeps = settingKey[NpmDeps]("List of js dependencies to be fetched")
 
@@ -30,16 +32,18 @@ object ExecNpmPlugin extends AutoPlugin {
     val npmUpdate = taskKey[File]("Fetch NPM dependencies")
 
     val jsonFile = taskKey[File]("package.json file path")
+
+    val resolvedJSDependencies = taskKey[Attributed[Seq[ResolvedJSDependency]]]("JS dependencies after resolution.")
   }
 
-  import autoImport._
+  import ExecNpmPlugin.autoImport._
 
   override lazy val projectSettings = Seq(
     npmDeps in Compile := List.empty,
 
     allNpmDeps in Compile := List.empty,
 
-    skip in packageJSDependencies := false,
+    skip in JSDependenciesPlugin.autoImport.packageJSDependencies := false,
 
     cssFile := (target in Compile).value / "css",
 
@@ -86,12 +90,11 @@ object ExecNpmPlugin extends AutoPlugin {
       }
 
       val resolvedDependencies = jss.map { f =>
-        ResolvedJSDependency.minimal(FileVirtualJSFile(f))
+        ResolvedJSDependency.minimal(f.toPath)
       }
 
       prev.map(_ ++ resolvedDependencies)
     },
-
     //GoogleClosureCompiler
     //      val minified = (packageMinifiedJSDependencies in Compile).value
     //      val compiler = new Compiler()
@@ -106,7 +109,8 @@ object ExecNpmPlugin extends AutoPlugin {
     //      println("FILLE  " + f.getAbsolutePath + " // " + compiler.toSource.size)
     //      f
 
-    dependencyFile := (packageMinifiedJSDependencies in Compile).value,
+    //
+    dependencyFile := (JSDependenciesPlugin.autoImport.packageMinifiedJSDependencies in Compile).value,
 
     (products in Compile) := (products in Compile).dependsOn(npmDepsManifest).value) ++ perScalaJSStageSettings(fullOptJS) ++ perScalaJSStageSettings(fastOptJS)
 
@@ -124,11 +128,14 @@ object ExecNpmPlugin extends AutoPlugin {
       streams.value).file,
 
     npmUpdate := scalajsbundler.sbtplugin.NpmUpdateTasks.npmUpdate(
+      new java.io.File(""), // Seems to be used with yarn only
       (crossTarget in Compile).value,
       jsonFile.value,
       false,
-      scalaJSNativeLibraries.value.data,
-      streams.value))
+      JSDependenciesPlugin.autoImport.scalaJSNativeLibraries.value.data,
+      streams.value,
+      Seq(),
+      Seq()))
 
   private def recursiveListFiles(f: File): Array[File] = {
     val these = f.listFiles
