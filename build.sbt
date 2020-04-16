@@ -17,6 +17,10 @@ val execnpm =
 
 licenses := Seq("Affero GPLv3" -> url("http://www.gnu.org/licenses/"))
 
+homepage := Some(url("https://github.com/openmole/scalajs-execnpm/"))
+
+scmInfo := Some(ScmInfo(url("https://github.com/openmole/scalajs-execnpm.git"), "git@github.com:openmole/scalajs-execnpm.git"))
+
 scalariformAutoformat := true
 
 import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations._
